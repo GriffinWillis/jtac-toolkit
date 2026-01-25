@@ -2,15 +2,22 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
+from contextlib import asynccontextmanager
 from database import close_pool
 from routes import weapons, aircraft, guidance, targets
 
 load_dotenv()
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    close_pool()
+
 app = FastAPI(
     title="JTAC Toolkit API",
     description="API for JTAC Weapon Catalog",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # CORS configuration
@@ -30,7 +37,7 @@ app.include_router(guidance.router)
 app.include_router(targets.router)
 
 @app.get("/")
-async def root():
+def root():
     return {
         "message": "JTAC Toolkit API",
         "docs": "/docs",
@@ -38,12 +45,8 @@ async def root():
     }
 
 @app.get("/api/health")
-async def health_check():
+def health_check():
     return {"status": "healthy"}
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    await close_pool()
 
 if __name__ == "__main__":
     import uvicorn
