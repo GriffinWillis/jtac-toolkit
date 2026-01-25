@@ -1,10 +1,21 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional, List
 from database import get_connection, release_connection
-from models import Weapon, WeaponGuidance, WeaponAircraft, WeaponTargetPairing, GuidanceType, Aircraft, Target
+from models import Weapon, WeaponGuidance, WeaponAircraft, WeaponTargetPairing, WeaponFamily, GuidanceType, Aircraft, Target
 from psycopg2.extras import RealDictCursor
 
 router = APIRouter(prefix="/api/weapons", tags=["weapons"])
+
+def build_weapon_family(row) -> Optional[WeaponFamily]:
+    """Build WeaponFamily from row data if family exists"""
+    if row.get('family_id') and row.get('family_name'):
+        return WeaponFamily(
+            id=row['family_id'],
+            name=row['family_name'],
+            description=row.get('family_description'),
+            created_at=row['family_created_at']
+        )
+    return None
 
 @router.get("", response_model=List[Weapon])
 def get_weapons(
@@ -12,6 +23,7 @@ def get_weapons(
     aircraft_id: Optional[int] = Query(None, description="Filter by aircraft ID"),
     guidance_id: Optional[int] = Query(None, description="Filter by guidance type ID"),
     target_id: Optional[int] = Query(None, description="Filter by target ID"),
+    family_id: Optional[int] = Query(None, description="Filter by weapon family ID"),
     search: Optional[str] = Query(None, description="Search in name or designation")
 ):
     """Get all weapons with optional filtering"""
@@ -20,8 +32,12 @@ def get_weapons(
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             # Build query with filters
             query = """
-                SELECT DISTINCT w.*
+                SELECT DISTINCT w.*,
+                    wf.name as family_name,
+                    wf.description as family_description,
+                    wf.created_at as family_created_at
                 FROM weapons w
+                LEFT JOIN weapon_families wf ON w.family_id = wf.id
                 LEFT JOIN weapon_aircraft wa ON w.id = wa.weapon_id
                 LEFT JOIN weapon_guidance wg ON w.id = wg.weapon_id
                 LEFT JOIN weapon_target wt ON w.id = wt.weapon_id
@@ -44,6 +60,10 @@ def get_weapons(
             if target_id:
                 query += " AND wt.target_id = %s"
                 params.append(target_id)
+
+            if family_id:
+                query += " AND w.family_id = %s"
+                params.append(family_id)
 
             if search:
                 query += " AND (w.name ILIKE %s OR w.designation ILIKE %s)"
@@ -72,7 +92,13 @@ def get_weapons(
 
                 guidance_types = [
                     WeaponGuidance(
-                        guidance=GuidanceType(**dict(g)),
+                        guidance=GuidanceType(
+                            id=g['id'],
+                            name=g['name'],
+                            full_name=g['full_name'],
+                            description=g['description'],
+                            created_at=g['created_at']
+                        ),
                         is_primary=g['is_primary']
                     )
                     for g in guidance_rows
@@ -90,7 +116,13 @@ def get_weapons(
 
                 aircraft_list = [
                     WeaponAircraft(
-                        aircraft=Aircraft(**dict(a)),
+                        aircraft=Aircraft(
+                            id=a['id'],
+                            name=a['name'],
+                            designation=a['designation'],
+                            service_branch=a['service_branch'],
+                            created_at=a['created_at']
+                        ),
                         notes=a['notes']
                     )
                     for a in aircraft_rows
@@ -108,15 +140,26 @@ def get_weapons(
 
                 targets = [
                     WeaponTargetPairing(
-                        target=Target(**dict(t)),
+                        target=Target(
+                            id=t['id'],
+                            name=t['name'],
+                            category=t['category'],
+                            description=t['description'],
+                            created_at=t['created_at']
+                        ),
                         effectiveness_rating=t['effectiveness_rating'],
                         notes=t['notes']
                     )
                     for t in target_rows
                 ]
 
+                # Build weapon dict without family columns
+                weapon_dict = {k: v for k, v in dict(row).items()
+                              if k not in ('family_id', 'family_name', 'family_description', 'family_created_at')}
+
                 weapons.append(Weapon(
-                    **dict(row),
+                    **weapon_dict,
+                    family=build_weapon_family(row),
                     guidance_types=guidance_types,
                     aircraft=aircraft_list,
                     targets=targets
@@ -132,7 +175,15 @@ def get_weapon(weapon_id: int):
     conn = get_connection()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT * FROM weapons WHERE id = %s", (weapon_id,))
+            cur.execute("""
+                SELECT w.*,
+                    wf.name as family_name,
+                    wf.description as family_description,
+                    wf.created_at as family_created_at
+                FROM weapons w
+                LEFT JOIN weapon_families wf ON w.family_id = wf.id
+                WHERE w.id = %s
+            """, (weapon_id,))
             row = cur.fetchone()
 
             if not row:
@@ -150,7 +201,13 @@ def get_weapon(weapon_id: int):
 
             guidance_types = [
                 WeaponGuidance(
-                    guidance=GuidanceType(**dict(g)),
+                    guidance=GuidanceType(
+                        id=g['id'],
+                        name=g['name'],
+                        full_name=g['full_name'],
+                        description=g['description'],
+                        created_at=g['created_at']
+                    ),
                     is_primary=g['is_primary']
                 )
                 for g in guidance_rows
@@ -168,7 +225,13 @@ def get_weapon(weapon_id: int):
 
             aircraft_list = [
                 WeaponAircraft(
-                    aircraft=Aircraft(**dict(a)),
+                    aircraft=Aircraft(
+                        id=a['id'],
+                        name=a['name'],
+                        designation=a['designation'],
+                        service_branch=a['service_branch'],
+                        created_at=a['created_at']
+                    ),
                     notes=a['notes']
                 )
                 for a in aircraft_rows
@@ -186,15 +249,26 @@ def get_weapon(weapon_id: int):
 
             targets = [
                 WeaponTargetPairing(
-                    target=Target(**dict(t)),
+                    target=Target(
+                        id=t['id'],
+                        name=t['name'],
+                        category=t['category'],
+                        description=t['description'],
+                        created_at=t['created_at']
+                    ),
                     effectiveness_rating=t['effectiveness_rating'],
                     notes=t['notes']
                 )
                 for t in target_rows
             ]
 
+            # Build weapon dict without family columns
+            weapon_dict = {k: v for k, v in dict(row).items()
+                          if k not in ('family_id', 'family_name', 'family_description', 'family_created_at')}
+
             return Weapon(
-                **dict(row),
+                **weapon_dict,
+                family=build_weapon_family(row),
                 guidance_types=guidance_types,
                 aircraft=aircraft_list,
                 targets=targets

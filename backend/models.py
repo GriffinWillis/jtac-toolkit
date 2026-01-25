@@ -35,6 +35,16 @@ class Target(BaseModel):
     class Config:
         from_attributes = True
 
+# Weapon Family Models
+class WeaponFamily(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 # Weapon-Target Pairing
 class WeaponTargetPairing(BaseModel):
     target: Target
@@ -55,8 +65,12 @@ class Weapon(BaseModel):
     name: str
     designation: Optional[str] = None
     weapon_type: str
+    family: Optional[WeaponFamily] = None
     description: Optional[str] = None
-    danger_close: Optional[int] = None
+    danger_close_contact: Optional[int] = None
+    danger_close_airburst: Optional[int] = None
+    warhead_weight: Optional[int] = None
+    warhead_type: Optional[str] = None
     special_notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime

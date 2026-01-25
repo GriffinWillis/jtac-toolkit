@@ -22,7 +22,7 @@ INSERT INTO aircraft (name, designation, service_branch) VALUES
 ('F-16 Fighting Falcon', 'F-16', 'USAF'),
 ('A-10 Thunderbolt II', 'A-10', 'USAF'),
 ('F/A-18 Super Hornet', 'F/A-18', 'USN'),
-('F-35 Lightning II', 'F-35', 'USAF'),
+('F-35 Lightning II', 'F-35', 'MULTI'),
 ('F-15E Strike Eagle', 'F-15E', 'USAF'),
 ('AV-8B Harrier II', 'AV-8B', 'USMC');
 
@@ -35,23 +35,123 @@ INSERT INTO targets (name, category, description) VALUES
 ('Heavy Vehicle', 'VEHICLE', 'Armored vehicles, tanks, APCs'),
 ('Structure', 'STRUCTURE', 'Buildings, bunkers, fixed positions'),
 ('Soft Target', 'OTHER', 'Unprotected targets, equipment'),
-('Hardened Target', 'STRUCTURE', 'Reinforced structures, bunkers');
+('Hardened Target', 'FORTIFICATION', 'Reinforced structures, bunkers');
 
 -- ============================================
--- STEP 4: Insert Weapons (No dependencies)
+-- STEP 4: Insert Weapon Families
 -- ============================================
-INSERT INTO weapons (name, designation, weapon_type, description, danger_close, special_notes) VALUES
-('GBU-12 Paveway II', 'GBU-12', 'BOMB', '500lb laser-guided bomb', 100, 'Requires continuous laser designation until impact'),
-('GBU-38 JDAM', 'GBU-38', 'BOMB', '500lb GPS-guided bomb', 75, 'No laser required, weather independent, can be used in all conditions'),
-('GBU-54 Laser JDAM', 'GBU-54', 'BOMB', '500lb dual-mode GPS/laser-guided bomb', 75, 'Can use GPS or laser guidance, flexible employment'),
-('AGM-65 Maverick', 'AGM-65', 'MISSILE', 'Air-to-surface missile', 150, 'Multiple seeker variants (IR, EO, laser), effective against vehicles'),
-('AGM-114 Hellfire', 'AGM-114', 'MISSILE', 'Air-to-surface missile', 200, 'Primarily used by helicopters, can be employed by fixed-wing'),
-('Hydra 70 Rocket', 'Hydra 70', 'ROCKET', '2.75 inch unguided rocket', 200, 'Various warhead options, typically used in volleys'),
-('30mm GAU-8', 'GAU-8', 'GUN', '30mm cannon', 50, 'A-10 specific, high rate of fire, effective against light armor'),
-('20mm M61 Vulcan', 'M61', 'GUN', '20mm rotary cannon', 50, 'Standard aircraft cannon, high rate of fire');
+INSERT INTO weapon_families (name, description) VALUES
+('Paveway II', 'Laser-guided bomb family using semi-active laser guidance'),
+('JDAM', 'Joint Direct Attack Munition - GPS-guided bomb family'),
+('Laser JDAM', 'Dual-mode GPS/laser guided bomb family'),
+('Maverick', 'Air-to-ground missile family with multiple seeker options'),
+('Hellfire', 'Air-to-surface missile primarily for helicopters'),
+('Hydra', 'Unguided rocket family'),
+('Aircraft Cannon', 'Fixed aircraft gun systems');
 
 -- ============================================
--- STEP 5: Link Weapons to Guidance Types
+-- STEP 5: Insert Weapons (References weapon_families)
+-- ============================================
+INSERT INTO weapons (name, designation, weapon_type, family_id, description, danger_close_contact, danger_close_airburst, warhead_weight, warhead_type, special_notes) VALUES
+(
+    'GBU-12 Paveway II',
+    'GBU-12',
+    'BOMB',
+    (SELECT id FROM weapon_families WHERE name = 'Paveway II'),
+    '500lb laser-guided bomb',
+    100,    -- danger close contact (meters)
+    175,    -- danger close airburst (meters)
+    192,    -- warhead weight (lbs)
+    'HE',   -- warhead type
+    'Requires continuous laser designation until impact'
+),
+(
+    'GBU-38 JDAM',
+    'GBU-38',
+    'BOMB',
+    (SELECT id FROM weapon_families WHERE name = 'JDAM'),
+    '500lb GPS-guided bomb',
+    75,     -- danger close contact
+    150,    -- danger close airburst
+    192,    -- warhead weight (lbs)
+    'HE',
+    'No laser required, weather independent, can be used in all conditions'
+),
+(
+    'GBU-54 Laser JDAM',
+    'GBU-54',
+    'BOMB',
+    (SELECT id FROM weapon_families WHERE name = 'Laser JDAM'),
+    '500lb dual-mode GPS/laser-guided bomb',
+    75,     -- danger close contact
+    150,    -- danger close airburst
+    192,    -- warhead weight (lbs)
+    'HE',
+    'Can use GPS or laser guidance, flexible employment'
+),
+(
+    'AGM-65 Maverick',
+    'AGM-65',
+    'MISSILE',
+    (SELECT id FROM weapon_families WHERE name = 'Maverick'),
+    'Air-to-surface missile',
+    150,    -- danger close contact
+    NULL,   -- no airburst option
+    125,    -- warhead weight (lbs, varies by variant)
+    'HEAT',
+    'Multiple seeker variants (IR, EO, laser), effective against vehicles'
+),
+(
+    'AGM-114 Hellfire',
+    'AGM-114',
+    'MISSILE',
+    (SELECT id FROM weapon_families WHERE name = 'Hellfire'),
+    'Air-to-surface missile',
+    200,    -- danger close contact
+    NULL,   -- no airburst option
+    20,     -- warhead weight (lbs)
+    'HEAT',
+    'Primarily used by helicopters, can be employed by fixed-wing'
+),
+(
+    'Hydra 70 Rocket',
+    'Hydra 70',
+    'ROCKET',
+    (SELECT id FROM weapon_families WHERE name = 'Hydra'),
+    '2.75 inch unguided rocket',
+    200,    -- danger close contact
+    275,    -- danger close airburst
+    17,     -- warhead weight (lbs, varies)
+    'HE',
+    'Various warhead options, typically used in volleys'
+),
+(
+    '30mm GAU-8',
+    'GAU-8',
+    'GUN',
+    (SELECT id FROM weapon_families WHERE name = 'Aircraft Cannon'),
+    '30mm cannon',
+    50,     -- danger close contact
+    NULL,   -- no airburst
+    NULL,   -- N/A for guns
+    'AP/HEI',
+    'A-10 specific, high rate of fire, effective against light armor'
+),
+(
+    '20mm M61 Vulcan',
+    'M61',
+    'GUN',
+    (SELECT id FROM weapon_families WHERE name = 'Aircraft Cannon'),
+    '20mm rotary cannon',
+    50,     -- danger close contact
+    NULL,   -- no airburst
+    NULL,   -- N/A for guns
+    'HEI',
+    'Standard aircraft cannon, high rate of fire'
+);
+
+-- ============================================
+-- STEP 6: Link Weapons to Guidance Types
 -- ============================================
 INSERT INTO weapon_guidance (weapon_id, guidance_id, is_primary) VALUES
 (
@@ -101,7 +201,7 @@ INSERT INTO weapon_guidance (weapon_id, guidance_id, is_primary) VALUES
 );
 
 -- ============================================
--- STEP 6: Link Weapons to Aircraft
+-- STEP 7: Link Weapons to Aircraft
 -- ============================================
 INSERT INTO weapon_aircraft (weapon_id, aircraft_id, notes) VALUES
 -- GBU-12
@@ -177,7 +277,7 @@ INSERT INTO weapon_aircraft (weapon_id, aircraft_id, notes) VALUES
 );
 
 -- ============================================
--- STEP 7: Link Weapons to Targets (Weapon-Target Pairing)
+-- STEP 8: Link Weapons to Targets (Weapon-Target Pairing)
 -- ============================================
 INSERT INTO weapon_target (weapon_id, target_id, effectiveness_rating, notes) VALUES
 -- GBU-12 pairings
