@@ -4,17 +4,11 @@
 
 -- Drop existing tables if they exist (in reverse dependency order)
 DROP TABLE IF EXISTS weapon_target CASCADE;
-DROP TABLE IF EXISTS weapon_guidance CASCADE;
-DROP TABLE IF EXISTS weapon_aircraft CASCADE;
-DROP TABLE IF EXISTS weapons CASCADE;
-DROP TABLE IF EXISTS weapon_families CASCADE;
-DROP TABLE IF EXISTS aircraft CASCADE;
-DROP TABLE IF EXISTS guidance_types CASCADE;
-DROP TABLE IF EXISTS targets CASCADE;
+DROP TABLE IF EXISTS weapon CASCADE;
+DROP TABLE IF EXISTS target CASCADE;
 
 -- Drop existing ENUMs if they exist
 DROP TYPE IF EXISTS weapon_type_enum CASCADE;
-DROP TYPE IF EXISTS service_branch_enum CASCADE;
 DROP TYPE IF EXISTS effectiveness_enum CASCADE;
 DROP TYPE IF EXISTS target_category_enum CASCADE;
 
@@ -23,7 +17,6 @@ DROP TYPE IF EXISTS target_category_enum CASCADE;
 -- ============================================
 
 CREATE TYPE weapon_type_enum AS ENUM ('BOMB', 'MISSILE', 'ROCKET', 'GUN');
-CREATE TYPE service_branch_enum AS ENUM ('USAF', 'USN', 'USMC', 'USA', 'MULTI');
 CREATE TYPE effectiveness_enum AS ENUM ('HIGH', 'MEDIUM', 'LOW');
 CREATE TYPE target_category_enum AS ENUM ('PERSONNEL', 'VEHICLE', 'STRUCTURE', 'FORTIFICATION', 'OTHER');
 
