@@ -1,81 +1,34 @@
 from pydantic import BaseModel
 from typing import Optional, List
-from datetime import datetime
 
-# Guidance Type Models
-class GuidanceType(BaseModel):
-    id: int
-    name: str
-    full_name: Optional[str] = None
-    description: Optional[str] = None
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-# Aircraft Models
-class Aircraft(BaseModel):
-    id: int
-    name: str
-    designation: str
-    service_branch: Optional[str] = None
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-# Target Models
+# Target Model
 class Target(BaseModel):
     id: int
     name: str
     category: Optional[str] = None
     description: Optional[str] = None
-    created_at: datetime
 
     class Config:
         from_attributes = True
 
-# Weapon Family Models
-class WeaponFamily(BaseModel):
-    id: int
-    name: str
-    description: Optional[str] = None
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-# Weapon-Target Pairing
+# Weapon-Target Pairing (must be defined before Weapon to avoid forward reference)
 class WeaponTargetPairing(BaseModel):
     target: Target
     effectiveness_rating: Optional[str] = None
     notes: Optional[str] = None
 
-# Weapon Models
-class WeaponGuidance(BaseModel):
-    guidance: GuidanceType
-    is_primary: bool
-
-class WeaponAircraft(BaseModel):
-    aircraft: Aircraft
-    notes: Optional[str] = None
-
+# Weapon Model
 class Weapon(BaseModel):
     id: int
     name: str
-    designation: Optional[str] = None
-    weapon_type: str
-    family: Optional[WeaponFamily] = None
     description: Optional[str] = None
-    danger_close_contact: Optional[int] = None
+    weapon_type: str
+    danger_close_contact: int
     danger_close_airburst: Optional[int] = None
     warhead_weight: Optional[int] = None
     warhead_type: Optional[str] = None
+    guidance_type: str
     special_notes: Optional[str] = None
-    created_at: datetime
-    updated_at: datetime
-    guidance_types: List[WeaponGuidance] = []
-    aircraft: List[WeaponAircraft] = []
     targets: List[WeaponTargetPairing] = []
 
     class Config:

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-JTAC Toolkit is a weapon catalog application for Joint Terminal Attack Controllers. It consists of a FastAPI backend with PostgreSQL and a React/Vite frontend.
+JTAC Toolkit is a weapon catalog application for Joint Terminal Attack Controllers. It provides reference data for weapons including danger close distances, warhead specifications, guidance types, and target effectiveness ratings. The stack is FastAPI (Python) with PostgreSQL and a React/Vite frontend.
 
 ## Commands
 
@@ -37,33 +37,74 @@ npm run preview  # Preview production build
 ## Architecture
 
 ### Backend Structure
-- **main.py**: FastAPI app entry point with CORS configuration and router registration
-- **database.py**: asyncpg connection pool management (PostgreSQL)
-- **models.py**: Pydantic models for request/response validation
-- **routes/**: API route handlers
-  - `weapons.py`: Main endpoint with filtering by type, aircraft, guidance, target, and search
-  - `aircraft.py`, `guidance.py`, `targets.py`: CRUD for reference data
+```
+backend/
+├── main.py          # FastAPI app with CORS and router registration
+├── database.py      # psycopg2 connection pool (synchronous)
+├── models.py        # Pydantic models (Weapon, Target, WeaponTargetPairing)
+├── requirements.txt # Python dependencies
+├── .env.example     # Environment variable template
+└── routes/
+    ├── weapon.py    # /api/weapons endpoints with filtering
+    └── target.py    # /api/targets endpoints
+```
 
 ### Database Schema (PostgreSQL)
-Core tables: `weapons`, `aircraft`, `guidance_types`, `targets`
-Junction tables: `weapon_aircraft`, `weapon_guidance`, `weapon_target`
 
-Weapons have many-to-many relationships with aircraft, guidance types, and targets.
+**Tables:**
+- `weapon` - Weapons with name, type, danger close distances, warhead specs, guidance type
+- `target` - Target types (personnel, vehicles, structures, etc.)
+- `weapon_target` - Junction table with effectiveness ratings (HIGH/MEDIUM/LOW)
+
+**ENUMs:**
+- `weapon_type_enum`: BOMB, MISSILE, ROCKET, GUN
+- `target_category_enum`: PERSONNEL, VEHICLE, STRUCTURE, FORTIFICATION, OTHER
+- `effectiveness_enum`: HIGH, MEDIUM, LOW
 
 ### Frontend Structure
-- React 19 with Vite
-- Tailwind CSS for styling
-- Components: `Layout.jsx`, `Home.jsx`, `WeaponCard.jsx`, `FilterBar.jsx`
+```
+frontend/src/
+├── App.jsx
+├── main.jsx
+└── components/
+    ├── Layout.jsx      # Page wrapper with header
+    ├── Home.jsx        # Main page, fetches and displays weapons
+    ├── WeaponCard.jsx  # Weapon display card with all details
+    └── FilterBar.jsx   # Filter UI (placeholder)
+```
+
+**Tech:** React 19, Vite, Tailwind CSS, Axios, React Router
 
 ### API Endpoints
-- `GET /api/weapons` - List weapons with optional filters (weapon_type, aircraft_id, guidance_id, target_id, search)
-- `GET /api/weapons/{id}` - Single weapon with related data
-- `GET /api/aircraft`, `GET /api/guidance`, `GET /api/targets` - Reference data
+
+**Weapons:**
+- `GET /api/weapons` - List all weapons with optional filters:
+  - `weapon_type` - Filter by type (BOMB, MISSILE, ROCKET, GUN)
+  - `guidance_type` - Filter by guidance (LGB, GPS, INS, etc.)
+  - `target_id` - Filter by compatible target
+  - `search` - Search by weapon name
+- `GET /api/weapons/{id}` - Single weapon with target pairings
+
+**Targets:**
+- `GET /api/targets` - List all targets
+- `GET /api/targets/{id}` - Single target
+
+**Other:**
 - `GET /api/health` - Health check
+- `GET /` - API info with docs link
 
 ## Configuration
 
-Backend requires `.env` file (see `.env.example`):
-- `DATABASE_URL`: PostgreSQL connection string
-- `HOST`, `PORT`: Server binding (defaults: 0.0.0.0:8000)
-- `FRONTEND_URL`: CORS allowed origin (defaults: http://localhost:5173)
+Backend requires `.env` file in `backend/` directory (see `.env.example`):
+```
+DATABASE_URL=postgresql://username:password@localhost:5432/database_name
+HOST=0.0.0.0
+PORT=8000
+FRONTEND_URL=http://localhost:5173
+```
+
+## Database Setup
+
+Run the SQL files in `database/` directory:
+1. `schema.sql` - Creates tables and indexes
+2. `seed_data.sql` - Populates initial weapon and target data

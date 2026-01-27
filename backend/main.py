@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 from database import close_pool
-from routes import weapons, aircraft, guidance, targets
+from routes import weapon, target
 
 load_dotenv()
 
@@ -31,10 +31,8 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(weapons.router)
-app.include_router(aircraft.router)
-app.include_router(guidance.router)
-app.include_router(targets.router)
+app.include_router(weapon.router)
+app.include_router(target.router)
 
 @app.get("/")
 def root():

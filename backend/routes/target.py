@@ -12,7 +12,7 @@ def get_targets():
     conn = get_connection()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT * FROM targets ORDER BY category, name")
+            cur.execute("SELECT * FROM target ORDER BY category, name")
             rows = cur.fetchall()
             return [Target(**dict(row)) for row in rows]
     finally:
@@ -24,7 +24,7 @@ def get_target_by_id(target_id: int):
     conn = get_connection()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT * FROM targets WHERE id = %s", (target_id,))
+            cur.execute("SELECT * FROM target WHERE id = %s", (target_id,))
             row = cur.fetchone()
 
             if not row:
