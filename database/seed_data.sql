@@ -1,6 +1,14 @@
 -- ============================================
 -- JTAC Weapon Catalog - Sample Seed Data
 -- ============================================
+--
+-- DISCLAIMER: This is SAMPLE DATA for demonstration purposes only.
+-- All values are approximate and derived from publicly available sources.
+-- This is NOT operational data and should NOT be used for real-world
+-- fire support coordination. Consult official publications (JFIRE, etc.)
+-- for authoritative weapon employment data.
+--
+-- ============================================
 -- IMPORTANT: Run schema.sql FIRST, then this file
 -- Order matters due to foreign key constraints
 
