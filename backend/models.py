@@ -4,9 +4,8 @@ from typing import Optional, List
 # Target Model
 class Target(BaseModel):
     id: int
-    name: str
     category: Optional[str] = None
-    description: Optional[str] = None
+    name: str
 
     class Config:
         from_attributes = True
@@ -14,22 +13,32 @@ class Target(BaseModel):
 # Weapon-Target Pairing (must be defined before Weapon to avoid forward reference)
 class WeaponTargetPairing(BaseModel):
     target: Target
-    effectiveness_rating: Optional[str] = None
-    notes: Optional[str] = None
 
 # Weapon Model
 class Weapon(BaseModel):
     id: int
+    weapon_subtype_id: int
     name: str
     description: Optional[str] = None
-    weapon_type: str
-    danger_close_contact: int
-    danger_close_airburst: Optional[int] = None
-    warhead_weight: Optional[int] = None
-    warhead_type: Optional[str] = None
+    variant: Optional[str] = None
     guidance_type: str
+    danger_close_contact: int
+    danger_close_airburst: Optional[int] = None    
+    weight: Optional[int] = None
+    warhead_type: Optional[str] = None
     special_notes: Optional[str] = None
     targets: List[WeaponTargetPairing] = []
 
     class Config:
         from_attributes = True
+
+# Weapon Subtype Model
+class WeaponSubtype(BaseModel):
+    id: int
+    weapon_type_id: int
+    name: str
+
+# Weapon Type Model
+class WeaponType(BaseModel):
+    id: int
+    name: str

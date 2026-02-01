@@ -21,13 +21,15 @@ def get_weapons(
             query = """
                 SELECT DISTINCT w.*
                 FROM weapon w
-                LEFT JOIN weapon_target wt ON w.id = wt.weapon_id
+                JOIN weapon_subtype ws ON w.weapon_subtype_id = ws.id
+                JOIN weapon_type wty ON ws.weapon_type_id = wty.id
+                LEFT JOIN weapon_subtype_target wst ON ws.id = wst.weapon_subtype_id
                 WHERE 1=1
             """
             params = []
 
             if weapon_type:
-                query += " AND w.weapon_type = %s"
+                query += " AND wty.name = %s"
                 params.append(weapon_type)
 
             if guidance_type:
@@ -35,7 +37,7 @@ def get_weapons(
                 params.append(guidance_type)
 
             if target_id:
-                query += " AND wt.target_id = %s"
+                query += " AND wst.target_id = %s"
                 params.append(target_id)
 
             if search:
@@ -49,16 +51,16 @@ def get_weapons(
 
             weapons = []
             for row in rows:
-                weapon_id = row['id']
+                weapon_subtype_id = row['weapon_subtype_id']
 
-                # Get targets
+                # Get targets from weapon_subtype_target table
                 cur.execute("""
-                    SELECT t.*, wt.effectiveness_rating, wt.notes
-                    FROM weapon_target wt
-                    JOIN target t ON wt.target_id = t.id
-                    WHERE wt.weapon_id = %s
+                    SELECT t.*
+                    FROM weapon_subtype_target wst
+                    JOIN target t ON wst.target_id = t.id
+                    WHERE wst.weapon_subtype_id = %s
                     ORDER BY t.name
-                """, (weapon_id,))
+                """, (weapon_subtype_id,))
                 target_rows = cur.fetchall()
 
                 targets = [
@@ -66,11 +68,8 @@ def get_weapons(
                         target=Target(
                             id=t['id'],
                             name=t['name'],
-                            category=t['category'],
-                            description=t['description']
-                        ),
-                        effectiveness_rating=t['effectiveness_rating'],
-                        notes=t['notes']
+                            category=t['category']
+                        )
                     )
                     for t in target_rows
                 ]
@@ -96,14 +95,14 @@ def get_weapon(weapon_id: int):
             if not row:
                 raise HTTPException(status_code=404, detail="Weapon not found")
 
-            # Get targets
+            # Get targets from weapon_subtype_target table
             cur.execute("""
-                SELECT t.*, wt.effectiveness_rating, wt.notes
-                FROM weapon_target wt
-                JOIN target t ON wt.target_id = t.id
-                WHERE wt.weapon_id = %s
+                SELECT t.*
+                FROM weapon_subtype_target wst
+                JOIN target t ON wst.target_id = t.id
+                WHERE wst.weapon_subtype_id = %s
                 ORDER BY t.name
-            """, (weapon_id,))
+            """, (row['weapon_subtype_id'],))
             target_rows = cur.fetchall()
 
             targets = [
@@ -111,11 +110,8 @@ def get_weapon(weapon_id: int):
                     target=Target(
                         id=t['id'],
                         name=t['name'],
-                        category=t['category'],
-                        description=t['description']
-                    ),
-                    effectiveness_rating=t['effectiveness_rating'],
-                    notes=t['notes']
+                        category=t['category']
+                    )
                 )
                 for t in target_rows
             ]
