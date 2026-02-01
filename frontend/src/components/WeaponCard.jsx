@@ -2,32 +2,24 @@ function WeaponCard({ weapon }) {
   const {
     name,
     description,
-    weapon_type,
+    variant,
+    guidance_type,
     danger_close_contact,
     danger_close_airburst,
-    warhead_weight,
+    weight,
     warhead_type,
-    guidance_type,
     special_notes,
-    targets
+    targets,
+    subtype_name
   } = weapon
-
-  const effectivenessColor = (rating) => {
-    switch (rating) {
-      case 'HIGH': return 'text-green-400'
-      case 'MEDIUM': return 'text-yellow-400'
-      case 'LOW': return 'text-red-400'
-      default: return 'text-gray-400'
-    }
-  }
 
   return (
     <div className="bg-dark-900 p-6 rounded-lg shadow-lg border border-dark-800 hover:border-dark-700 transition-colors">
       <div className="flex justify-between items-start mb-2">
         <h3 className="text-xl font-semibold text-gray-100">{name || 'Unknown'}</h3>
-        {weapon_type && (
+        {subtype_name && (
           <span className="px-3 py-1 bg-dark-700 text-gray-300 text-sm font-medium rounded">
-            {weapon_type}
+            {subtype_name}
           </span>
         )}
       </div>
@@ -59,7 +51,7 @@ function WeaponCard({ weapon }) {
             <div>
               <span className="text-gray-500 text-sm">Weight: </span>
               <span className="text-gray-200">
-                {warhead_weight != null ? `${warhead_weight} lbs` : 'N/A'}
+                {weight != null ? `${weight} lbs` : 'N/A'}
               </span>
             </div>
             <div>

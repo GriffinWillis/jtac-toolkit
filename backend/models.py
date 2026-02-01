@@ -18,6 +18,7 @@ class WeaponTargetPairing(BaseModel):
 class Weapon(BaseModel):
     id: int
     weapon_subtype_id: int
+    subtype_name: Optional[str] = None
     name: str
     description: Optional[str] = None
     variant: Optional[str] = None

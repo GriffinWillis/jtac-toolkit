@@ -19,7 +19,7 @@ def get_weapons(
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             # Build query with filters
             query = """
-                SELECT DISTINCT w.*
+                SELECT DISTINCT w.*, ws.name as subtype_name
                 FROM weapon w
                 JOIN weapon_subtype ws ON w.weapon_subtype_id = ws.id
                 JOIN weapon_type wty ON ws.weapon_type_id = wty.id
@@ -89,7 +89,12 @@ def get_weapon(weapon_id: int):
     conn = get_connection()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT * FROM weapon WHERE id = %s", (weapon_id,))
+            cur.execute("""
+                SELECT w.*, ws.name as subtype_name
+                FROM weapon w
+                JOIN weapon_subtype ws ON w.weapon_subtype_id = ws.id
+                WHERE w.id = %s
+            """, (weapon_id,))
             row = cur.fetchone()
 
             if not row:
