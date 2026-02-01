@@ -52,14 +52,15 @@ backend/
 ### Database Schema (PostgreSQL)
 
 **Tables:**
+- `weapon_type` - Main weapon type category
+- `weapon_subtype` - Weapon subtype category (GP, JDAM, LJDAM, DMLGB, LGB, SDB, HELLFIRE, CBU, FW, RW)
 - `weapon` - Weapons with name, type, danger close distances, warhead specs, guidance type
 - `target` - Target types (personnel, vehicles, structures, etc.)
-- `weapon_target` - Junction table with effectiveness ratings (HIGH/MEDIUM/LOW)
+- `weapon_subtype_target` - Junction table pairing targets to weapon subtypes
+- `weapon_target` - Junction table pairing targets to specific weapons
 
 **ENUMs:**
-- `weapon_type_enum`: BOMB, MISSILE, ROCKET, GUN
 - `target_category_enum`: PERSONNEL, VEHICLE, STRUCTURE, FORTIFICATION, OTHER
-- `effectiveness_enum`: HIGH, MEDIUM, LOW
 
 ### Frontend Structure
 ```
@@ -70,7 +71,7 @@ frontend/src/
     ├── Layout.jsx      # Page wrapper with header
     ├── Home.jsx        # Main page, fetches and displays weapons
     ├── WeaponCard.jsx  # Weapon display card with all details
-    └── FilterBar.jsx   # Filter UI (placeholder)
+    └── FilterBar.jsx   # Filter UI
 ```
 
 **Tech:** React 19, Vite, Tailwind CSS, Axios, React Router

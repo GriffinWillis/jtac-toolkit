@@ -13,504 +13,397 @@
 -- Order matters due to foreign key constraints
 
 -- ============================================
--- STEP 1: Insert Targets (No dependencies)
+-- STEP 1: Insert Weapon Types
 -- ============================================
-INSERT INTO target (name, category, description) VALUES
-('Personnel', 'PERSONNEL', 'Enemy personnel in the open'),
-('Personnel in Defilade', 'PERSONNEL', 'Enemy personnel in covered or concealed positions'),
-('Light Vehicle', 'VEHICLE', 'Unarmored or lightly armored vehicles (trucks, technicals)'),
-('Armored Vehicle', 'VEHICLE', 'Armored personnel carriers, IFVs'),
-('Main Battle Tank', 'VEHICLE', 'Heavy armored vehicles with reactive armor'),
-('Structure', 'STRUCTURE', 'Buildings, compounds, fixed positions'),
-('Bridge', 'STRUCTURE', 'Bridge spans and supports'),
-('Bunker', 'FORTIFICATION', 'Reinforced concrete bunkers'),
-('Fighting Position', 'FORTIFICATION', 'Dug-in defensive positions, trenches'),
-('Radar/SAM Site', 'OTHER', 'Air defense systems and radar installations'),
-('Ammunition Cache', 'OTHER', 'Weapons and ammunition storage');
+INSERT INTO weapon_type (name) VALUES
+('BOMB'),
+('MISSILE'),
+('ROCKET'),
+('GUN');
 
 -- ============================================
--- STEP 2: Insert Weapons
+-- STEP 2: Insert Weapon Subtypes (JFIRE categories)
 -- ============================================
-INSERT INTO weapon (name, description, weapon_type, danger_close_contact, danger_close_airburst, warhead_weight, warhead_type, guidance_type, special_notes) VALUES
+INSERT INTO weapon_subtype (weapon_type_id, name) VALUES
+-- BOMB subtypes
+((SELECT id FROM weapon_type WHERE name = 'BOMB'), 'GP'),
+((SELECT id FROM weapon_type WHERE name = 'BOMB'), 'JDAM'),
+((SELECT id FROM weapon_type WHERE name = 'BOMB'), 'LJDAM'),
+((SELECT id FROM weapon_type WHERE name = 'BOMB'), 'LGB'),
+((SELECT id FROM weapon_type WHERE name = 'BOMB'), 'SDB'),
+-- MISSILE subtypes
+((SELECT id FROM weapon_type WHERE name = 'MISSILE'), 'HELLFIRE'),
+((SELECT id FROM weapon_type WHERE name = 'MISSILE'), 'MAVERICK'),
+-- ROCKET subtypes
+((SELECT id FROM weapon_type WHERE name = 'ROCKET'), 'GUIDED'),
+((SELECT id FROM weapon_type WHERE name = 'ROCKET'), 'UNGUIDED'),
+-- GUN subtypes
+((SELECT id FROM weapon_type WHERE name = 'GUN'), 'FW'),
+((SELECT id FROM weapon_type WHERE name = 'GUN'), 'RW');
+
+-- ============================================
+-- STEP 3: Insert Targets
+-- ============================================
+INSERT INTO target (name, category) VALUES
+('Radars', 'OTHER'),
+('Soft Targets, Static Vehicles, Aircraft in the Open', 'VEHICLE'),
+('Moving Vehicles', 'VEHICLE'),
+('Armored Vehicles: Tanks, APCs', 'VEHICLE'),
+('Personnel: Individuals/Small Groups', 'PERSONNEL'),
+('Personnel: Large Group', 'PERSONNEL'),
+('Buildings', 'STRUCTURE'),
+('Artillery Fixed AAA in Open', 'OTHER'),
+('Hardened Position - Targets in Revetments', 'FORTIFICATION'),
+('Self-Propelled SAM and AAA', 'OTHER');
+
+-- ============================================
+-- STEP 4: Insert Weapons
+-- ============================================
+INSERT INTO weapon (weapon_subtype_id, name, description, guidance_type, danger_close_contact, danger_close_airburst, weight, warhead_type, special_notes) VALUES
 -- Laser Guided Bombs (Paveway II)
 (
+    (SELECT id FROM weapon_subtype WHERE name = 'LGB'),
     'GBU-12',
     'Paveway II 500lb laser-guided bomb',
-    'BOMB',
+    'LASER',
     100,    -- danger close contact (meters)
     175,    -- danger close airburst (meters)
-    192,    -- warhead weight (lbs)
+    500,    -- weight (lbs)
     'HE',
-    'LGB',
     'Requires continuous laser designation until impact. Terminal guidance only.'
 ),
 (
+    (SELECT id FROM weapon_subtype WHERE name = 'LGB'),
     'GBU-10',
     'Paveway II 2000lb laser-guided bomb',
-    'BOMB',
+    'LASER',
     200,    -- danger close contact (meters)
     350,    -- danger close airburst (meters)
-    945,    -- warhead weight (lbs)
+    2000,   -- weight (lbs)
     'HE',
-    'LGB',
     'Requires continuous laser designation. Large blast radius - use caution near friendly forces.'
 ),
 (
+    (SELECT id FROM weapon_subtype WHERE name = 'LGB'),
     'GBU-16',
     'Paveway II 1000lb laser-guided bomb',
-    'BOMB',
+    'LASER',
     150,    -- danger close contact (meters)
     250,    -- danger close airburst (meters)
-    450,    -- warhead weight (lbs)
+    1000,   -- weight (lbs)
     'HE',
-    'LGB',
     'Requires continuous laser designation until impact.'
 ),
 
 -- JDAM (GPS Guided)
 (
+    (SELECT id FROM weapon_subtype WHERE name = 'JDAM'),
     'GBU-38',
     'JDAM 500lb GPS-guided bomb',
-    'BOMB',
+    'GPS/INS',
     75,     -- danger close contact (meters)
     150,    -- danger close airburst (meters)
-    192,    -- warhead weight (lbs)
+    500,    -- weight (lbs)
     'HE',
-    'GPS/INS',
     'No laser required. Weather independent. Requires accurate target coordinates.'
 ),
 (
+    (SELECT id FROM weapon_subtype WHERE name = 'JDAM'),
     'GBU-31',
     'JDAM 2000lb GPS-guided bomb',
-    'BOMB',
+    'GPS/INS',
     200,    -- danger close contact (meters)
     400,    -- danger close airburst (meters)
-    945,    -- warhead weight (lbs)
+    2000,   -- weight (lbs)
     'HE',
-    'GPS/INS',
     'No laser required. Weather independent. Large blast radius.'
 ),
 (
+    (SELECT id FROM weapon_subtype WHERE name = 'JDAM'),
     'GBU-32',
     'JDAM 1000lb GPS-guided bomb',
-    'BOMB',
+    'GPS/INS',
     150,    -- danger close contact (meters)
     275,    -- danger close airburst (meters)
-    450,    -- warhead weight (lbs)
+    1000,   -- weight (lbs)
     'HE',
-    'GPS/INS',
     'No laser required. Weather independent.'
 ),
 
 -- Laser JDAM (Dual-mode)
 (
+    (SELECT id FROM weapon_subtype WHERE name = 'LJDAM'),
     'GBU-54',
     'Laser JDAM 500lb dual-mode GPS/laser-guided bomb',
-    'BOMB',
+    'GPS/INS + LASER',
     75,     -- danger close contact (meters)
     150,    -- danger close airburst (meters)
-    192,    -- warhead weight (lbs)
+    500,    -- weight (lbs)
     'HE',
-    'GPS/INS + LGB',
     'Can engage moving targets with laser guidance or stationary targets with GPS. Flexible employment.'
 ),
 (
+    (SELECT id FROM weapon_subtype WHERE name = 'LJDAM'),
     'GBU-56',
     'Laser JDAM 2000lb dual-mode GPS/laser-guided bomb',
-    'BOMB',
+    'GPS/INS + LASER',
     200,    -- danger close contact (meters)
     400,    -- danger close airburst (meters)
-    945,    -- warhead weight (lbs)
+    2000,   -- weight (lbs)
     'HE',
-    'GPS/INS + LGB',
     'Dual-mode guidance. Large warhead for hardened targets.'
 ),
 
--- Air-to-Ground Missiles
+-- Small Diameter Bomb
 (
-    'AGM-65E',
-    'Maverick laser-guided air-to-surface missile',
-    'MISSILE',
-    150,    -- danger close contact (meters)
-    NULL,   -- no airburst option
-    136,    -- warhead weight (lbs)
-    'Penetrator',
-    'Laser',
-    'Laser Maverick. Requires continuous laser designation. Effective against vehicles and structures.'
-),
-(
-    'AGM-65G',
-    'Maverick IR-guided air-to-surface missile',
-    'MISSILE',
-    150,    -- danger close contact (meters)
-    NULL,   -- no airburst option
-    300,    -- warhead weight (lbs)
+    (SELECT id FROM weapon_subtype WHERE name = 'SDB'),
+    'GBU-39',
+    'Small Diameter Bomb',
+    'GPS/INS',
+    25,     -- danger close contact (meters)
+    50,     -- danger close airburst (meters)
+    250,    -- weight (lbs)
     'HE',
-    'IR',
-    'Infrared Maverick. Lock-on before launch. Day/night capability.'
+    'Low collateral damage option. Precision strike in urban environments.'
+),
+
+-- General Purpose Bombs (Unguided)
+(
+    (SELECT id FROM weapon_subtype WHERE name = 'GP'),
+    'Mk-82',
+    '500lb general purpose bomb',
+    'UNGUIDED',
+    300,    -- danger close contact (meters)
+    400,    -- danger close airburst (meters)
+    500,    -- weight (lbs)
+    'HE',
+    'Unguided free-fall bomb. Area weapon. Requires accurate delivery parameters.'
 ),
 (
+    (SELECT id FROM weapon_subtype WHERE name = 'GP'),
+    'Mk-84',
+    '2000lb general purpose bomb',
+    'UNGUIDED',
+    400,    -- danger close contact (meters)
+    600,    -- danger close airburst (meters)
+    2000,   -- weight (lbs)
+    'HE',
+    'Unguided free-fall bomb. Large blast radius. Area weapon.'
+),
+
+-- Hellfire Missiles
+(
+    (SELECT id FROM weapon_subtype WHERE name = 'HELLFIRE'),
     'AGM-114K',
     'Hellfire II laser-guided missile',
-    'MISSILE',
+    'LASER',
     200,    -- danger close contact (meters)
     NULL,   -- no airburst option
-    20,     -- warhead weight (lbs)
+    100,    -- weight (lbs)
     'HEAT',
-    'Laser',
     'SALH guidance. Highly accurate. Can be used in LOBL or LOAL modes.'
 ),
 (
+    (SELECT id FROM weapon_subtype WHERE name = 'HELLFIRE'),
     'AGM-114R',
     'Hellfire Romeo multi-purpose missile',
-    'MISSILE',
+    'LASER',
     200,    -- danger close contact (meters)
     NULL,   -- no airburst option
-    18,     -- warhead weight (lbs)
+    100,    -- weight (lbs)
     'Multi-purpose',
-    'Laser',
     'Multi-purpose warhead effective against personnel, vehicles, and structures.'
 ),
 
--- Rockets
+-- Maverick Missiles
 (
-    'Hydra 70 HE',
-    '2.75 inch unguided rocket with HE warhead',
-    'ROCKET',
-    200,    -- danger close contact (meters)
-    275,    -- danger close airburst (meters)
-    17,     -- warhead weight (lbs)
-    'HE',
-    'Unguided',
-    'Typically employed in volleys. Area weapon.'
+    (SELECT id FROM weapon_subtype WHERE name = 'MAVERICK'),
+    'AGM-65E',
+    'Maverick laser-guided air-to-surface missile',
+    'LASER',
+    150,    -- danger close contact (meters)
+    NULL,   -- no airburst option
+    670,    -- weight (lbs)
+    'Penetrator',
+    'Laser Maverick. Requires continuous laser designation. Effective against vehicles and structures.'
 ),
 (
+    (SELECT id FROM weapon_subtype WHERE name = 'MAVERICK'),
+    'AGM-65G',
+    'Maverick IR-guided air-to-surface missile',
+    'IR',
+    150,    -- danger close contact (meters)
+    NULL,   -- no airburst option
+    670,    -- weight (lbs)
+    'HE',
+    'Infrared Maverick. Lock-on before launch. Day/night capability.'
+),
+
+-- Guided Rockets
+(
+    (SELECT id FROM weapon_subtype WHERE name = 'GUIDED'),
     'APKWS',
     'Advanced Precision Kill Weapon System (laser-guided Hydra)',
-    'ROCKET',
+    'LASER',
     100,    -- danger close contact (meters)
     NULL,   -- contact only
-    6,      -- warhead weight (lbs)
+    32,     -- weight (lbs)
     'HE',
-    'Laser',
     'Precision guided 2.75 inch rocket. Low collateral damage option.'
 ),
 
--- Guns
+-- Unguided Rockets
 (
+    (SELECT id FROM weapon_subtype WHERE name = 'UNGUIDED'),
+    'Hydra 70 HE',
+    '2.75 inch unguided rocket with HE warhead',
+    'UNGUIDED',
+    200,    -- danger close contact (meters)
+    275,    -- danger close airburst (meters)
+    24,     -- weight (lbs)
+    'HE',
+    'Typically employed in volleys. Area weapon.'
+),
+
+-- Fixed-Wing Guns
+(
+    (SELECT id FROM weapon_subtype WHERE name = 'FW'),
     'GAU-8/A',
     '30mm Avenger cannon (A-10)',
-    'GUN',
+    'UNGUIDED',
     50,     -- danger close contact (meters)
     NULL,   -- no airburst
     NULL,   -- N/A for guns
     'AP/HEI',
-    'Unguided',
     'A-10 specific. 3,900 rounds/min. Highly effective against light armor and personnel.'
 ),
 (
+    (SELECT id FROM weapon_subtype WHERE name = 'FW'),
     'M61A1',
     '20mm Vulcan rotary cannon',
-    'GUN',
+    'UNGUIDED',
     50,     -- danger close contact (meters)
     NULL,   -- no airburst
     NULL,   -- N/A for guns
     'HEI',
-    'Unguided',
     'Standard fighter cannon. 6,000 rounds/min. Strafe attacks.'
 ),
+
+-- Rotary-Wing Guns
 (
-    'GAU-12/U',
-    '25mm Equalizer cannon (AV-8B, AC-130)',
-    'GUN',
+    (SELECT id FROM weapon_subtype WHERE name = 'RW'),
+    'GAU-21',
+    '.50 cal door gun',
+    'UNGUIDED',
     50,     -- danger close contact (meters)
     NULL,   -- no airburst
     NULL,   -- N/A for guns
-    'HEI',
-    'Unguided',
-    'Medium caliber aircraft cannon. Effective against personnel and light vehicles.'
+    'AP/Ball',
+    'Helicopter door-mounted heavy machine gun. Suppression and personnel targets.'
 );
 
 -- ============================================
--- STEP 3: Link Weapons to Targets (Weapon-Target Pairing)
+-- STEP 5: Insert Weapon Subtype-Target Pairings
+-- Default effectiveness based on JFIRE guidance
 -- ============================================
-INSERT INTO weapon_target (weapon_id, target_id, effectiveness_rating, notes) VALUES
--- GBU-12 pairings
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-12'),
-    (SELECT id FROM target WHERE name = 'Structure'),
-    'HIGH',
-    'Highly effective against fixed structures'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-12'),
-    (SELECT id FROM target WHERE name = 'Light Vehicle'),
-    'HIGH',
-    'Precision engagement of vehicles'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-12'),
-    (SELECT id FROM target WHERE name = 'Armored Vehicle'),
-    'MEDIUM',
-    'Can damage/destroy with direct hit'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-12'),
-    (SELECT id FROM target WHERE name = 'Bunker'),
-    'MEDIUM',
-    'May require multiple weapons for hardened bunkers'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-12'),
-    (SELECT id FROM target WHERE name = 'Fighting Position'),
-    'HIGH',
-    'Effective against dug-in positions'
-),
 
--- GBU-10 pairings (2000lb for hard targets)
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-10'),
-    (SELECT id FROM target WHERE name = 'Bunker'),
-    'HIGH',
-    'Large warhead effective against reinforced structures'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-10'),
-    (SELECT id FROM target WHERE name = 'Bridge'),
-    'HIGH',
-    'Effective for bridge denial'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-10'),
-    (SELECT id FROM target WHERE name = 'Structure'),
-    'HIGH',
-    'Large blast radius - verify collateral damage concerns'
-),
+-- LGB effective targets
+INSERT INTO weapon_subtype_target (weapon_subtype_id, target_id) VALUES
+((SELECT id FROM weapon_subtype WHERE name = 'LGB'), (SELECT id FROM target WHERE name = 'Buildings')),
+((SELECT id FROM weapon_subtype WHERE name = 'LGB'), (SELECT id FROM target WHERE name = 'Armored Vehicles: Tanks, APCs')),
+((SELECT id FROM weapon_subtype WHERE name = 'LGB'), (SELECT id FROM target WHERE name = 'Soft Targets, Static Vehicles, Aircraft in the Open')),
+((SELECT id FROM weapon_subtype WHERE name = 'LGB'), (SELECT id FROM target WHERE name = 'Hardened Position - Targets in Revetments')),
+((SELECT id FROM weapon_subtype WHERE name = 'LGB'), (SELECT id FROM target WHERE name = 'Artillery Fixed AAA in Open')),
+((SELECT id FROM weapon_subtype WHERE name = 'LGB'), (SELECT id FROM target WHERE name = 'Self-Propelled SAM and AAA')),
+((SELECT id FROM weapon_subtype WHERE name = 'LGB'), (SELECT id FROM target WHERE name = 'Radars'));
 
--- GBU-38 pairings
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-38'),
-    (SELECT id FROM target WHERE name = 'Structure'),
-    'HIGH',
-    'Weather-independent, precise GPS guidance'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-38'),
-    (SELECT id FROM target WHERE name = 'Fighting Position'),
-    'HIGH',
-    'Effective against stationary positions'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-38'),
-    (SELECT id FROM target WHERE name = 'Ammunition Cache'),
-    'HIGH',
-    'Precision strike on fixed targets'
-),
+-- JDAM effective targets
+INSERT INTO weapon_subtype_target (weapon_subtype_id, target_id) VALUES
+((SELECT id FROM weapon_subtype WHERE name = 'JDAM'), (SELECT id FROM target WHERE name = 'Buildings')),
+((SELECT id FROM weapon_subtype WHERE name = 'JDAM'), (SELECT id FROM target WHERE name = 'Armored Vehicles: Tanks, APCs')),
+((SELECT id FROM weapon_subtype WHERE name = 'JDAM'), (SELECT id FROM target WHERE name = 'Soft Targets, Static Vehicles, Aircraft in the Open')),
+((SELECT id FROM weapon_subtype WHERE name = 'JDAM'), (SELECT id FROM target WHERE name = 'Hardened Position - Targets in Revetments')),
+((SELECT id FROM weapon_subtype WHERE name = 'JDAM'), (SELECT id FROM target WHERE name = 'Artillery Fixed AAA in Open')),
+((SELECT id FROM weapon_subtype WHERE name = 'JDAM'), (SELECT id FROM target WHERE name = 'Self-Propelled SAM and AAA')),
+((SELECT id FROM weapon_subtype WHERE name = 'JDAM'), (SELECT id FROM target WHERE name = 'Radars'));
 
--- GBU-31 pairings
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-31'),
-    (SELECT id FROM target WHERE name = 'Bunker'),
-    'HIGH',
-    'Large warhead for hardened targets'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-31'),
-    (SELECT id FROM target WHERE name = 'Bridge'),
-    'HIGH',
-    'Effective for infrastructure denial'
-),
+-- LJDAM effective targets (same as JDAM + moving vehicles)
+INSERT INTO weapon_subtype_target (weapon_subtype_id, target_id) VALUES
+((SELECT id FROM weapon_subtype WHERE name = 'LJDAM'), (SELECT id FROM target WHERE name = 'Buildings')),
+((SELECT id FROM weapon_subtype WHERE name = 'LJDAM'), (SELECT id FROM target WHERE name = 'Armored Vehicles: Tanks, APCs')),
+((SELECT id FROM weapon_subtype WHERE name = 'LJDAM'), (SELECT id FROM target WHERE name = 'Soft Targets, Static Vehicles, Aircraft in the Open')),
+((SELECT id FROM weapon_subtype WHERE name = 'LJDAM'), (SELECT id FROM target WHERE name = 'Moving Vehicles')),
+((SELECT id FROM weapon_subtype WHERE name = 'LJDAM'), (SELECT id FROM target WHERE name = 'Hardened Position - Targets in Revetments')),
+((SELECT id FROM weapon_subtype WHERE name = 'LJDAM'), (SELECT id FROM target WHERE name = 'Artillery Fixed AAA in Open')),
+((SELECT id FROM weapon_subtype WHERE name = 'LJDAM'), (SELECT id FROM target WHERE name = 'Self-Propelled SAM and AAA')),
+((SELECT id FROM weapon_subtype WHERE name = 'LJDAM'), (SELECT id FROM target WHERE name = 'Radars'));
 
--- GBU-54 pairings (can hit movers)
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-54'),
-    (SELECT id FROM target WHERE name = 'Light Vehicle'),
-    'HIGH',
-    'Can engage moving vehicles with laser'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-54'),
-    (SELECT id FROM target WHERE name = 'Armored Vehicle'),
-    'HIGH',
-    'Effective against moving armor'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GBU-54'),
-    (SELECT id FROM target WHERE name = 'Structure'),
-    'HIGH',
-    'Dual-mode flexibility'
-),
+-- SDB effective targets (low collateral, precision)
+INSERT INTO weapon_subtype_target (weapon_subtype_id, target_id) VALUES
+((SELECT id FROM weapon_subtype WHERE name = 'SDB'), (SELECT id FROM target WHERE name = 'Buildings')),
+((SELECT id FROM weapon_subtype WHERE name = 'SDB'), (SELECT id FROM target WHERE name = 'Soft Targets, Static Vehicles, Aircraft in the Open')),
+((SELECT id FROM weapon_subtype WHERE name = 'SDB'), (SELECT id FROM target WHERE name = 'Artillery Fixed AAA in Open')),
+((SELECT id FROM weapon_subtype WHERE name = 'SDB'), (SELECT id FROM target WHERE name = 'Radars'));
 
--- AGM-65E pairings
-(
-    (SELECT id FROM weapon WHERE name = 'AGM-65E'),
-    (SELECT id FROM target WHERE name = 'Armored Vehicle'),
-    'HIGH',
-    'Penetrator warhead effective against armor'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'AGM-65E'),
-    (SELECT id FROM target WHERE name = 'Main Battle Tank'),
-    'HIGH',
-    'Designed for anti-armor mission'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'AGM-65E'),
-    (SELECT id FROM target WHERE name = 'Bunker'),
-    'MEDIUM',
-    'Penetrator warhead can defeat some fortifications'
-),
+-- GP (unguided bombs) effective targets (area weapons)
+INSERT INTO weapon_subtype_target (weapon_subtype_id, target_id) VALUES
+((SELECT id FROM weapon_subtype WHERE name = 'GP'), (SELECT id FROM target WHERE name = 'Buildings')),
+((SELECT id FROM weapon_subtype WHERE name = 'GP'), (SELECT id FROM target WHERE name = 'Personnel: Large Group')),
+((SELECT id FROM weapon_subtype WHERE name = 'GP'), (SELECT id FROM target WHERE name = 'Soft Targets, Static Vehicles, Aircraft in the Open')),
+((SELECT id FROM weapon_subtype WHERE name = 'GP'), (SELECT id FROM target WHERE name = 'Hardened Position - Targets in Revetments')),
+((SELECT id FROM weapon_subtype WHERE name = 'GP'), (SELECT id FROM target WHERE name = 'Artillery Fixed AAA in Open'));
 
--- AGM-65G pairings
-(
-    (SELECT id FROM weapon WHERE name = 'AGM-65G'),
-    (SELECT id FROM target WHERE name = 'Light Vehicle'),
-    'HIGH',
-    'IR seeker locks onto vehicle heat signature'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'AGM-65G'),
-    (SELECT id FROM target WHERE name = 'Armored Vehicle'),
-    'HIGH',
-    'Large warhead effective against APCs/IFVs'
-),
+-- HELLFIRE effective targets
+INSERT INTO weapon_subtype_target (weapon_subtype_id, target_id) VALUES
+((SELECT id FROM weapon_subtype WHERE name = 'HELLFIRE'), (SELECT id FROM target WHERE name = 'Armored Vehicles: Tanks, APCs')),
+((SELECT id FROM weapon_subtype WHERE name = 'HELLFIRE'), (SELECT id FROM target WHERE name = 'Soft Targets, Static Vehicles, Aircraft in the Open')),
+((SELECT id FROM weapon_subtype WHERE name = 'HELLFIRE'), (SELECT id FROM target WHERE name = 'Moving Vehicles')),
+((SELECT id FROM weapon_subtype WHERE name = 'HELLFIRE'), (SELECT id FROM target WHERE name = 'Buildings')),
+((SELECT id FROM weapon_subtype WHERE name = 'HELLFIRE'), (SELECT id FROM target WHERE name = 'Self-Propelled SAM and AAA')),
+((SELECT id FROM weapon_subtype WHERE name = 'HELLFIRE'), (SELECT id FROM target WHERE name = 'Radars'));
 
--- AGM-114K pairings
-(
-    (SELECT id FROM weapon WHERE name = 'AGM-114K'),
-    (SELECT id FROM target WHERE name = 'Main Battle Tank'),
-    'HIGH',
-    'HEAT warhead designed for armor defeat'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'AGM-114K'),
-    (SELECT id FROM target WHERE name = 'Armored Vehicle'),
-    'HIGH',
-    'Highly effective against all armor types'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'AGM-114K'),
-    (SELECT id FROM target WHERE name = 'Light Vehicle'),
-    'HIGH',
-    'Precision engagement of vehicles'
-),
+-- MAVERICK effective targets
+INSERT INTO weapon_subtype_target (weapon_subtype_id, target_id) VALUES
+((SELECT id FROM weapon_subtype WHERE name = 'MAVERICK'), (SELECT id FROM target WHERE name = 'Armored Vehicles: Tanks, APCs')),
+((SELECT id FROM weapon_subtype WHERE name = 'MAVERICK'), (SELECT id FROM target WHERE name = 'Soft Targets, Static Vehicles, Aircraft in the Open')),
+((SELECT id FROM weapon_subtype WHERE name = 'MAVERICK'), (SELECT id FROM target WHERE name = 'Moving Vehicles')),
+((SELECT id FROM weapon_subtype WHERE name = 'MAVERICK'), (SELECT id FROM target WHERE name = 'Buildings')),
+((SELECT id FROM weapon_subtype WHERE name = 'MAVERICK'), (SELECT id FROM target WHERE name = 'Hardened Position - Targets in Revetments')),
+((SELECT id FROM weapon_subtype WHERE name = 'MAVERICK'), (SELECT id FROM target WHERE name = 'Self-Propelled SAM and AAA'));
 
--- AGM-114R pairings (multi-purpose)
-(
-    (SELECT id FROM weapon WHERE name = 'AGM-114R'),
-    (SELECT id FROM target WHERE name = 'Personnel'),
-    'HIGH',
-    'Multi-purpose warhead effective against troops'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'AGM-114R'),
-    (SELECT id FROM target WHERE name = 'Light Vehicle'),
-    'HIGH',
-    'Effective against soft targets'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'AGM-114R'),
-    (SELECT id FROM target WHERE name = 'Structure'),
-    'MEDIUM',
-    'Can engage light structures'
-),
+-- GUIDED rockets (APKWS) effective targets
+INSERT INTO weapon_subtype_target (weapon_subtype_id, target_id) VALUES
+((SELECT id FROM weapon_subtype WHERE name = 'GUIDED'), (SELECT id FROM target WHERE name = 'Personnel: Individuals/Small Groups')),
+((SELECT id FROM weapon_subtype WHERE name = 'GUIDED'), (SELECT id FROM target WHERE name = 'Soft Targets, Static Vehicles, Aircraft in the Open')),
+((SELECT id FROM weapon_subtype WHERE name = 'GUIDED'), (SELECT id FROM target WHERE name = 'Moving Vehicles')),
+((SELECT id FROM weapon_subtype WHERE name = 'GUIDED'), (SELECT id FROM target WHERE name = 'Artillery Fixed AAA in Open'));
 
--- Hydra 70 pairings
-(
-    (SELECT id FROM weapon WHERE name = 'Hydra 70 HE'),
-    (SELECT id FROM target WHERE name = 'Personnel'),
-    'HIGH',
-    'Area suppression in volleys'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'Hydra 70 HE'),
-    (SELECT id FROM target WHERE name = 'Light Vehicle'),
-    'MEDIUM',
-    'Requires multiple hits, area weapon'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'Hydra 70 HE'),
-    (SELECT id FROM target WHERE name = 'Fighting Position'),
-    'MEDIUM',
-    'Area saturation against positions'
-),
+-- UNGUIDED rockets effective targets (area suppression)
+INSERT INTO weapon_subtype_target (weapon_subtype_id, target_id) VALUES
+((SELECT id FROM weapon_subtype WHERE name = 'UNGUIDED'), (SELECT id FROM target WHERE name = 'Personnel: Individuals/Small Groups')),
+((SELECT id FROM weapon_subtype WHERE name = 'UNGUIDED'), (SELECT id FROM target WHERE name = 'Personnel: Large Group')),
+((SELECT id FROM weapon_subtype WHERE name = 'UNGUIDED'), (SELECT id FROM target WHERE name = 'Soft Targets, Static Vehicles, Aircraft in the Open')),
+((SELECT id FROM weapon_subtype WHERE name = 'UNGUIDED'), (SELECT id FROM target WHERE name = 'Artillery Fixed AAA in Open'));
 
--- APKWS pairings
-(
-    (SELECT id FROM weapon WHERE name = 'APKWS'),
-    (SELECT id FROM target WHERE name = 'Personnel'),
-    'HIGH',
-    'Precision low-collateral option'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'APKWS'),
-    (SELECT id FROM target WHERE name = 'Light Vehicle'),
-    'HIGH',
-    'Precision engagement of soft vehicles'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'APKWS'),
-    (SELECT id FROM target WHERE name = 'Personnel in Defilade'),
-    'MEDIUM',
-    'Small warhead may not defeat cover'
-),
+-- FW (fixed-wing guns) effective targets
+INSERT INTO weapon_subtype_target (weapon_subtype_id, target_id) VALUES
+((SELECT id FROM weapon_subtype WHERE name = 'FW'), (SELECT id FROM target WHERE name = 'Personnel: Individuals/Small Groups')),
+((SELECT id FROM weapon_subtype WHERE name = 'FW'), (SELECT id FROM target WHERE name = 'Personnel: Large Group')),
+((SELECT id FROM weapon_subtype WHERE name = 'FW'), (SELECT id FROM target WHERE name = 'Soft Targets, Static Vehicles, Aircraft in the Open')),
+((SELECT id FROM weapon_subtype WHERE name = 'FW'), (SELECT id FROM target WHERE name = 'Moving Vehicles')),
+((SELECT id FROM weapon_subtype WHERE name = 'FW'), (SELECT id FROM target WHERE name = 'Armored Vehicles: Tanks, APCs'));
 
--- GAU-8/A pairings
-(
-    (SELECT id FROM weapon WHERE name = 'GAU-8/A'),
-    (SELECT id FROM target WHERE name = 'Light Vehicle'),
-    'HIGH',
-    'Devastating against soft vehicles'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GAU-8/A'),
-    (SELECT id FROM target WHERE name = 'Armored Vehicle'),
-    'HIGH',
-    '30mm AP effective against APCs'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GAU-8/A'),
-    (SELECT id FROM target WHERE name = 'Personnel'),
-    'HIGH',
-    'Area suppression capability'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GAU-8/A'),
-    (SELECT id FROM target WHERE name = 'Main Battle Tank'),
-    'LOW',
-    'Top attack angle required, limited effect on modern MBTs'
-),
+-- RW (rotary-wing guns) effective targets
+INSERT INTO weapon_subtype_target (weapon_subtype_id, target_id) VALUES
+((SELECT id FROM weapon_subtype WHERE name = 'RW'), (SELECT id FROM target WHERE name = 'Personnel: Individuals/Small Groups')),
+((SELECT id FROM weapon_subtype WHERE name = 'RW'), (SELECT id FROM target WHERE name = 'Personnel: Large Group')),
+((SELECT id FROM weapon_subtype WHERE name = 'RW'), (SELECT id FROM target WHERE name = 'Soft Targets, Static Vehicles, Aircraft in the Open'));
 
--- M61A1 pairings
-(
-    (SELECT id FROM weapon WHERE name = 'M61A1'),
-    (SELECT id FROM target WHERE name = 'Personnel'),
-    'HIGH',
-    'High rate of fire for strafe'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'M61A1'),
-    (SELECT id FROM target WHERE name = 'Light Vehicle'),
-    'MEDIUM',
-    '20mm limited against vehicles'
-),
+-- ============================================
+-- STEP 6: Insert Weapon-Target Pairings (Weapon-Specific Overrides)
+-- Only needed when a specific weapon differs from its subtype defaults
+-- ============================================
 
--- GAU-12/U pairings
-(
-    (SELECT id FROM weapon WHERE name = 'GAU-12/U'),
-    (SELECT id FROM target WHERE name = 'Personnel'),
-    'HIGH',
-    'Effective suppression'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GAU-12/U'),
-    (SELECT id FROM target WHERE name = 'Light Vehicle'),
-    'HIGH',
-    '25mm effective against soft vehicles'
-),
-(
-    (SELECT id FROM weapon WHERE name = 'GAU-12/U'),
-    (SELECT id FROM target WHERE name = 'Fighting Position'),
-    'MEDIUM',
-    'Can suppress dug-in positions'
-);
+-- GAU-8/A (A-10 gun) is particularly effective against armor due to 30mm AP rounds
+-- Already covered by FW subtype, but this is an example of how to add weapon-specific pairings
+-- No overrides needed for initial data - subtype pairings are sufficient
