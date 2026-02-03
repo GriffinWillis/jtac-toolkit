@@ -28,7 +28,7 @@ function WeaponCard({ weapon }) {
         <p className="text-gray-400 text-sm mb-4">{description}</p>
       )}
 
-      <div className="grid grid-cols-2 gap-4 border-t border-dark-800 pt-4 mb-4">
+      <div className="flex justify-between items-start border-t border-dark-800 pt-4 mb-4">
         <div>
           <h4 className="text-sm font-medium text-gray-400 mb-2">Danger Close</h4>
           <div className="space-y-1">
@@ -60,11 +60,11 @@ function WeaponCard({ weapon }) {
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="border-t border-dark-800 pt-4 mb-4">
-        <h4 className="text-sm font-medium text-gray-400 mb-2">Guidance</h4>
-        <p className="text-gray-200">{guidance_type || 'N/A'}</p>
+        <div>
+          <h4 className="text-sm font-medium text-gray-400 mb-2">Guidance</h4>
+          <p className="text-gray-200">{guidance_type || 'N/A'}</p>
+        </div>
       </div>
 
       {targets && targets.length > 0 && (
